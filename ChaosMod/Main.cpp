@@ -38,8 +38,8 @@ static void ParseConfigFile(int& effectSpawnTime, int& effectTimedDur, int& seed
 	effectTimerColor = ParseColor(configFile.ReadValue("EffectTimedTimerColor", "#FFB4B4B4"));
 	// Meta Config
 	metaEffectSpawnTime = configFile.ReadValueInt("NewMetaEffectSpawnTime", 600);
-	metaEffectTimedDur = configFile.ReadValueInt("MetaEffectDur", 90);
-	metaEffectShortDur = configFile.ReadValueInt("MetaShortEffectDur", 45);
+	metaEffectTimedDur = configFile.ReadValueInt("MetaEffectDur", 100);
+	metaEffectShortDur = configFile.ReadValueInt("MetaShortEffectDur", 70);
 
 }
 
@@ -155,6 +155,37 @@ static void ParseEffectsFile()
 
 void Main::Init()
 {
+	static std::streambuf* oldStreamBuf;
+	if (DoesFileExist("chaosmod\\.enableconsole"))
+	{
+		if (GetConsoleWindow())
+		{
+			system("cls");
+		}
+		else
+		{
+			AllocConsole();
+
+			SetConsoleTitle("Chaos Mod");
+			DeleteMenu(GetSystemMenu(GetConsoleWindow(), FALSE), SC_CLOSE, MF_BYCOMMAND);
+
+			oldStreamBuf = std::cout.rdbuf();
+
+			g_consoleOut = std::ofstream("CONOUT$");
+			std::cout.rdbuf(g_consoleOut.rdbuf());
+
+			std::cout.clear();
+		}
+	}
+	else if (GetConsoleWindow())
+	{
+		std::cout.rdbuf(oldStreamBuf);
+
+		g_consoleOut.close();
+
+		FreeConsole();
+	}
+
 	int effectSpawnTime, effectTimedDur, seed, effectTimedShortDur, twitchSecsBeforeChatVoting, metaEffectSpawnTime, metaEffectTimedDur, metaEffectShortDur;
 	bool enableTwitchVoting, enableTwitchChanceSystem, enableVotingChanceSystemRetainChance, enableTwitchRandomEffectVoteable;
 	std::array<int, 3> timerColor, textColor, effectTimerColor;
@@ -235,6 +266,13 @@ void Main::Loop()
 			}
 			else if (justReenabled)
 			{
+				if (ThreadManager::IsAnyThreadRunning())
+				{
+					ThreadManager::RunThreads();
+
+					continue;
+				}
+
 				justReenabled = false;
 
 				// Clear log
@@ -304,7 +342,7 @@ void Main::Loop()
 		if (splashTextTime > 0)
 		{
 			BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
-			ADD_TEXT_COMPONENT_SUBSTRING_PLAYER_NAME("Chaos Mod v1.9b1 by pongo1231\n\nSee credits.txt for list of contributors");
+			ADD_TEXT_COMPONENT_SUBSTRING_PLAYER_NAME("Chaos Mod v1.9.0.1 by pongo1231\n\nSee credits.txt for list of contributors");
 			SET_TEXT_SCALE(.65f, .65f);
 			SET_TEXT_COLOUR(0, 255, 255, 255);
 			SET_TEXT_CENTRE(true);

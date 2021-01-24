@@ -180,7 +180,7 @@ void EffectDispatcher::UpdateMetaEffects()
 			std::vector<EffectIdentifier> availableMetaEffects;
 			for (const auto& pair : g_enabledEffects)
 			{
-				if (pair.second.IsMeta)
+				if (pair.second.IsMeta && pair.second.TimedType != EffectTimedType::TIMED_PERMANENT)
 				{
 					availableMetaEffects.push_back(pair.first);
 				}
@@ -377,6 +377,7 @@ void EffectDispatcher::Reset()
 	m_enableNormalEffectDispatch = false;
 	m_metaEffectsEnabled = true;
 	m_metaEffectTimer = m_metaEffectSpawnTime;
+	m_metaTimer = GetTickCount64();
 
 	for (const auto& pair : g_enabledEffects)
 	{
@@ -387,7 +388,6 @@ void EffectDispatcher::Reset()
 
 			if (registeredEffect)
 			{
-				//registeredEffect->Start();
 				m_permanentEffects.push_back(registeredEffect);
 
 				ThreadManager::CreateThread(registeredEffect, true);
@@ -406,6 +406,4 @@ void EffectDispatcher::ResetTimer()
 	m_timerTimer = GetTickCount64();
 	m_timerTimerRuns = 0;
 	m_effectsTimer = GetTickCount64();
-	m_metaTimer = GetTickCount64();
-	m_metaEffectTimer = m_metaEffectSpawnTime;
 }
